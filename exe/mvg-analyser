@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'thor'
+require_relative '../lib/mvg/analyser'
+require_relative '../lib/mvg/cli'
+require_relative '../lib/mvg/data_handler'
+MVG::Cli.start(ARGV)
