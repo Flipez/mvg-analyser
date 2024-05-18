@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'typhoeus', '~> 1.4'
   spec.add_dependency 'google-cloud-bigquery'
   spec.add_dependency 'tty-progressbar'
+  spec.add_dependency 'oj'
 end

@@ -1,7 +1,7 @@
 require "google/cloud/bigquery"
 require 'zstds'
 require 'minitar'
-require 'json'
+require 'oj'
 require 'typhoeus'
 require 'tty-progressbar'
 
@@ -64,7 +64,7 @@ module MVG
     def download
       list = Typhoeus.get("https://data.mvg.auch.cool/json", followlocation: true)
 
-      list = JSON.parse(list.body)
+      list = Oj.load(list.body)
       entries = list.select do |entry|
         entry['type'] == 'file'
       end
@@ -82,7 +82,9 @@ module MVG
           export_bq(filename)
 
           File.delete(f)
-          File.write('export.log', entry['name'], mode: 'a+')
+          File.write('export.log', "\n" + entry['name'], mode: 'a+')
+          puts "Sleep 5s until next file"
+          sleep(5)
         end
       end
     end
@@ -93,7 +95,7 @@ module MVG
       dataset = bq.dataset 'mvg'
       table = dataset.table 'responses'
 
-      inserter = table.insert_async(max_rows: 10_000) do |result|
+      inserter = table.insert_async do |result|
         if result.error?
           #p result.error
         else
@@ -109,7 +111,7 @@ module MVG
             station = split[1]
             timestamp = split[2].split("_")[0].to_i
 
-            content = JSON.parse(entry.read)
+            content = Oj.load(entry.read)
 
             content = content.map do |response|
               response.each do |key, value|
@@ -127,7 +129,7 @@ module MVG
 
             inserter.insert content
             bar.advance
-          rescue JSON::ParserError, TypeError => err
+          rescue Oj::ParseError, JSON::ParserError, TypeError => err
             #p err
           end
         end
