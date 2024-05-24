@@ -1,9 +1,9 @@
 require "google/cloud/bigquery"
-require 'zstds'
-require 'minitar'
-require 'oj'
-require 'typhoeus'
-require 'tty-progressbar'
+require "zstds"
+require "minitar"
+require "oj"
+require "typhoeus"
+require "tty-progressbar"
 
 module MVG
   class DataHandler
@@ -11,12 +11,12 @@ module MVG
 
     def initialize
       ENV["BIGQUERY_CREDENTIALS"] = "key.json"
-      
+
       @bq = Google::Cloud::Bigquery.new
     end
 
     def setup_table
-      dataset = bq.dataset 'mvg'
+      dataset = bq.dataset "mvg"
 
       table = dataset.create_table "responses" do |t|
         t.name = "MVG Responses"
@@ -66,7 +66,7 @@ module MVG
 
       list = Oj.load(list.body)
       entries = list.select do |entry|
-        entry['type'] == 'file'
+        entry["type"] == "file"
       end
 
       puts "Found #{entries.size} archives online"
@@ -74,15 +74,15 @@ module MVG
         puts "Downloading #{i} of #{entries.size}"
         filename = "/tmp/#{entry["name"]}"
 
-        next if File.readlines('export.log', chomp: true).include?(entry['name'])
+        next if File.readlines("export.log", chomp: true).include?(entry["name"])
 
-        File.open(filename, 'wb') do |f|
+        File.open(filename, "wb") do |f|
           f.write Typhoeus.get("https://data.mvg.auch.cool/json/#{entry["name"]}", followlocation: true).body
 
           export_bq(filename)
 
           File.delete(f)
-          File.write('export.log', "\n" + entry['name'], mode: 'a+')
+          File.write("export.log", "\n" + entry["name"], mode: "a+")
           puts "Sleep 5s until next file"
           sleep(5)
         end
@@ -92,19 +92,19 @@ module MVG
     def export_bq(file)
       puts("\texporting #{file} to BigQuery")
       bar = TTY::ProgressBar.new("inserting [:bar] :current/unknown ET:elapsed :rate/s", total: 135_000)
-      dataset = bq.dataset 'mvg'
-      table = dataset.table 'responses'
+      dataset = bq.dataset "mvg"
+      table = dataset.table "responses"
 
       inserter = table.insert_async do |result|
         if result.error?
-          #p result.error
+          # p result.error
         else
-          #puts "inserted #{result.insert_count} rows with #{result.error_count} errors"
+          # puts "inserted #{result.insert_count} rows with #{result.error_count} errors"
         end
       end
 
       stream(file) do |entry|
-        if entry.name.end_with? 'body.json'
+        if entry.name.end_with? "body.json"
           begin
             split = entry.name.split("/")
             datestring = split[0].to_i
@@ -115,9 +115,7 @@ module MVG
 
             content = content.map do |response|
               response.each do |key, value|
-                if value.is_a? Array
-                  response[key] = value.to_json
-                end
+                response[key] = value.to_json if value.is_a? Array
               end
 
               response["id"] = "#{datestring}-#{station}-#{timestamp}"
@@ -129,8 +127,8 @@ module MVG
 
             inserter.insert content
             bar.advance
-          rescue Oj::ParseError, JSON::ParserError, TypeError => err
-            #p err
+          rescue Oj::ParseError, JSON::ParserError, TypeError => e
+            # p err
           end
         end
       end
