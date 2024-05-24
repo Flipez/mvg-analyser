@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "google/cloud/bigquery"
 require "zstds"
 require "minitar"
@@ -18,7 +20,7 @@ module MVG
     def setup_table
       dataset = bq.dataset "mvg"
 
-      table = dataset.create_table "responses" do |t|
+      dataset.create_table "responses" do |t|
         t.name = "MVG Responses"
         t.description = "Responses from the MVG Scraper"
         t.schema do |s|
@@ -82,7 +84,7 @@ module MVG
           export_bq(filename)
 
           File.delete(f)
-          File.write("export.log", "\n" + entry["name"], mode: "a+")
+          File.write("export.log", "\n#{entry["name"]}", mode: "a+")
           puts "Sleep 5s until next file"
           sleep(5)
         end
@@ -127,7 +129,7 @@ module MVG
 
             inserter.insert content
             bar.advance
-          rescue Oj::ParseError, JSON::ParserError, TypeError => e
+          rescue Oj::ParseError, JSON::ParserError, TypeError
             # p err
           end
         end
