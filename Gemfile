@@ -7,4 +7,5 @@ gemspec
 
 gem "rake", "~> 13.0"
 
-gem "rubocop", "~> 0.80"
+gem "httpclient", git: "https://github.com/nahi/httpclient"
+gem "mutex_m"
