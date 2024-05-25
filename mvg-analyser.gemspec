@@ -31,7 +31,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "oj"
   spec.add_dependency "ruby-zstds", "~> 1.3"
   spec.add_dependency "thor"
+  spec.add_dependency "tty-logger"
   spec.add_dependency "tty-progressbar"
+  spec.add_dependency "tty-prompt"
   spec.add_dependency "typhoeus", "~> 1.4"
 
   spec.add_development_dependency "rubocop", "~> 1.64"
