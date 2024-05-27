@@ -175,11 +175,17 @@ module MVG
     def export_bq(filename, filepath)
       bar = multibar.register("[:bar] #{filename} @ :rate inserts/s")
 
+      cache = []
       stream(filepath) do |entry|
         if entry.name.end_with? "body.json"
-          insert_response(entry, bar)
+          insert_response(entry, bar, cache)
         elsif entry.name.end_with? "meta.json"
           #insert_request(entry, bar)
+        end
+
+        if cache.size > 5000
+          clickhouse.insert_rows(cache)
+          cache = []
         end
       end
     end
@@ -202,7 +208,7 @@ module MVG
       hash
     end
 
-    def insert_response(entry, bar)
+    def insert_response(entry, bar, cache)
       content = Oj.load(entry.read)
 
       content = content.map do |response|
@@ -210,7 +216,8 @@ module MVG
       end
 
       #res_inserter.insert content
-      clickhouse.insert_rows(content)
+      #clickhouse.insert_rows(content)
+      cache.concat content
       bar.advance
     rescue Oj::ParseError, JSON::ParserError, TypeError => e
       case e.message
