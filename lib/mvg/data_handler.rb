@@ -11,7 +11,7 @@ require "tty-prompt"
 
 module MVG
   class DataHandler
-    attr_reader :logger, :multibar, :entries, :exported, :prompt, :req_inserter, :res_inserter
+    attr_reader :logger, :multibar, :entries, :exported, :prompt, :req_inserter, :res_inserter, :clickhouse
 
     UPSTREAM_URL = "https://data.mvg.auch.cool/json"
 
@@ -21,7 +21,7 @@ module MVG
       fetch_upstream_entries
       fetch_exported
 
-      connect_bigquery
+      #connect_bigquery
 
       @logger = Logger.new("logfile.log")
       @multibar = TTY::ProgressBar::Multi.new(
@@ -32,6 +32,8 @@ module MVG
         hide_cursor: true
       )
       @prompt = TTY::Prompt.new
+
+      @clickhouse = Analyser::Clickhouse.new
     end
 
     def connect_bigquery
@@ -177,7 +179,7 @@ module MVG
         if entry.name.end_with? "body.json"
           insert_response(entry, bar)
         elsif entry.name.end_with? "meta.json"
-          insert_request(entry, bar)
+          #insert_request(entry, bar)
         end
       end
     end
@@ -207,7 +209,8 @@ module MVG
         enrich_hash(entry, response)
       end
 
-      res_inserter.insert content
+      #res_inserter.insert content
+      clickhouse.insert_rows(content)
       bar.advance
     rescue Oj::ParseError, JSON::ParserError, TypeError => e
       case e.message

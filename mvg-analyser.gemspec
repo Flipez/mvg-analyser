@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "click_house"
   spec.add_dependency "google-cloud-bigquery"
   spec.add_dependency "minitar", "~> 0.9"
   spec.add_dependency "oj"
