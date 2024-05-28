@@ -6,11 +6,10 @@ require "oj"
 require "typhoeus"
 require "logger"
 require "tty-progressbar"
-require "tty-prompt"
 
 module MVG
   class DataHandler
-    attr_reader :logger, :multibar, :entries, :exported, :prompt, :req_inserter, :res_inserter
+    attr_reader :logger, :multibar, :entries, :exported, :req_inserter, :res_inserter
 
     UPSTREAM_URL = "https://data.mvg.auch.cool/json"
 
@@ -26,7 +25,6 @@ module MVG
         bar_format: :block,
         hide_cursor: true
       )
-      @prompt = TTY::Prompt.new
     end
 
     def connect_bigquery
@@ -98,8 +96,6 @@ module MVG
 
         File.delete(f)
         File.write("export.log", "\n#{filename}", mode: "a+")
-
-        exit unless prompt.yes?("Continue next record?")
       end
     end
 
