@@ -15,10 +15,16 @@ module MVG
       analyser.export_bq(file)
     end
 
-    desc "full", "download and export full upstream data"
-    def full
+    desc "export-clickhouse", "download and export full upstream data to clickhouse"
+    def export_clickhouse
       analyser = MVG::DataHandler.new
-      analyser.full
+      analyser.export_clickhouse
+    end
+
+    desc "export-bigquery", "download and export full upstream data to bigquery"
+    def export_bigquery
+      analyser = MVG::DataHandler.new
+      analyser.export_bigquery
     end
   end
 end

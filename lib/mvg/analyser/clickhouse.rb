@@ -6,11 +6,13 @@ require "yaml"
 module MVG
   module Analyser
     class Clickhouse
-      attr_reader :connection
+      attr_reader :connection, :table
+      attr_accessor :cache
 
-      def initialize
+      def initialize(table)
         config = YAML.load_file("config.yaml")
 
+        @cache = []
         @connection = ClickHouse::Connection.new(
           ClickHouse::Config.new(
             database: "mvg",
@@ -19,10 +21,11 @@ module MVG
             password: config.dig("clickhouse", "password")
           )
         )
+        @table = table
       end
 
-      def setup_table
-        connection.create_table("responses", engine: "MergeTree PRIMARY KEY id") do |t|
+      def setup_tables
+        connection.create_table("responses", if_not_exists: true, engine: "MergeTree PRIMARY KEY id") do |t|
           t << "id String CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
           t << "timestamp Int64 CODEC(ZSTD(3))"
@@ -47,10 +50,46 @@ module MVG
           t << "occupancy LowCardinality(String) CODEC(ZSTD(3))"
           t << "stopPointGlobalId String CODEC(ZSTD(3))"
         end
+
+        connection.create_table("requests", if_not_exists: true, engine: "MergeTree PRIMARY KEY id") do |t|
+          t << "id String CODEC(ZSTD(3))"
+          t << "datestring String CODEC(ZSTD(3))"
+          t << "timestamp Int64 CODEC(ZSTD(3))"
+          t << "station LowCardinality(String) CODEC(ZSTD(3))"
+          t << "appconnect_time Float64 CODEC(ZSTD(3))"
+          t << "connect_time Float64 CODEC(ZSTD(3))"
+          t << "httpauth_avail Int32 CODEC(ZSTD(3))"
+          t << "namelookup_time Float64 CODEC(ZSTD(3))"
+          t << "pretransfer_time Float64 CODEC(ZSTD(3))"
+          t << "primary_ip LowCardinality(String) CODEC(ZSTD(3))"
+          t << "redirect_count Int32 CODEC(ZSTD(3))"
+          t << "redirect_url String CODEC(ZSTD(3))"
+          t << "request_size Int32 CODEC(ZSTD(3))"
+          t << "request_url String CODEC(ZSTD(3))"
+          t << "response_code Int16 CODEC(ZSTD(3))"
+          t << "return_code LowCardinality(String) CODEC(ZSTD(3))"
+          t << "return_message LowCardinality(String) CODEC(ZSTD(3))"
+          t << "size_download Float32 CODEC(ZSTD(3))"
+          t << "size_upload Float32 CODEC(ZSTD(3))"
+          t << "starttransfer_time Float32 CODEC(ZSTD(3))"
+          t << "total_time Float32 CODEC(ZSTD(3))"
+          t << "headers String CODEC(ZSTD(3))"
+          t << "request_params String CODEC(ZSTD(3))"
+          t << "request_header String CODEC(ZSTD(3))"
+        end
       end
 
-      def insert_rows(rows)
-        connection.insert("responses", rows)
+      def insert(rows)
+        cache.concat(rows)
+
+        return unless cache.size > 5000
+
+        commit
+      end
+
+      def commit
+        connection.insert(table, cache)
+        @cache = []
       end
     end
   end
