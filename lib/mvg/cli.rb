@@ -26,5 +26,12 @@ module MVG
       analyser = MVG::DataHandler.new
       analyser.export_bigquery
     end
+
+    desc "reset-clickhouse", "drops clickhouse tables and creates new, empty ones"
+    def reset_clickhouse
+      ch = Analyser::Clickhouse.new("")
+      ch.drop_tables
+      ch.setup_tables
+    end
   end
 end

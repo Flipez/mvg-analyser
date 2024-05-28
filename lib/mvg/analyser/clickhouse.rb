@@ -79,6 +79,13 @@ module MVG
         end
       end
 
+      def drop_tables
+        puts "Will drop all clickhouse tables in 10s"
+        sleep(10)
+        connection.drop_table("responses")
+        connection.drop_table("requests")
+      end
+
       def insert(rows)
         cache.concat(rows)
 
