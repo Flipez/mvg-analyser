@@ -121,11 +121,7 @@ module MVG
         hash[key] = value.to_json if value.is_a?(Array) || value.is_a?(Hash)
       end
 
-      hash["id"] = if idx
-                     "#{datestring}-#{station}-#{timestamp}-#{idx}"
-                   else
-                     "#{datestring}-#{station}-#{timestamp}"
-                   end
+      hash["responseIndex"] = idx if idx
       hash["datestring"] = datestring
       hash["station"] = station
       hash["timestamp"] = timestamp
