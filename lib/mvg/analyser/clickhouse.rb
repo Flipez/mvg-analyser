@@ -25,7 +25,8 @@ module MVG
       end
 
       def setup_tables
-        connection.create_table("responses", if_not_exists: true, engine: "MergeTree PRIMARY KEY (responseIndex, datestring, timestamp, station)") do |t|
+        connection.create_table("responses", if_not_exists: true,
+                                             engine: "MergeTree PRIMARY KEY (responseIndex, datestring, timestamp, station)") do |t|
           t << "responseIndex Int16 CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
           t << "timestamp Int64 CODEC(ZSTD(3))"
