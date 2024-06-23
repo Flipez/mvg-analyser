@@ -89,7 +89,7 @@ module MVG
       def insert(rows)
         cache.concat(rows)
 
-        return unless cache.size > 5000
+        return unless cache.size > 100_000
 
         commit
       end
