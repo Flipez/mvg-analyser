@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "analyser/bigquery"
+require_relative "analyser/clickhouse"
 require_relative "analyser/version"
 
 module MVG

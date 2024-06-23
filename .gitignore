@@ -9,3 +9,6 @@
 key.json
 data/
 logfile.log
+config.yaml
+export.log
+vendor/
