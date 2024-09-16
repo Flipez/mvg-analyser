@@ -56,7 +56,7 @@ module MVG
       @queue = Queue.new
 
       entries.each do |entry|
-        queue << entry["name"] unless exported.include?(entry)
+        queue << entry["name"] unless exported.include?(entry["name"])
       end
     end
 
