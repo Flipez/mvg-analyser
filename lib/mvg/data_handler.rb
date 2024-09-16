@@ -9,22 +9,24 @@ require "tty-progressbar"
 
 module MVG
   class DataHandler
-    attr_reader :logger, :multibar, :entries, :exported, :req_inserter, :res_inserter
+    attr_reader :logger, :multibar, :entries, :exported, :req_inserter, :res_inserter, :queue, :threads
 
     UPSTREAM_URL = "https://data.mvg.auch.cool/json"
 
     def initialize
       fetch_upstream_entries
       fetch_exported
+      prefill_queue
 
       @logger = Logger.new("logfile.log")
       @multibar = TTY::ProgressBar::Multi.new(
-        "[:bar] Downloading and exporting #{entries.size - exported.size} archives | :elapsed",
+        "[:bar] Downloading and exporting #{queue.size} archives | :elapsed",
         frequency: 3,
         width: 10,
         bar_format: :block,
         hide_cursor: true
       )
+      @threads = []
     end
 
     def connect_bigquery
@@ -48,6 +50,14 @@ module MVG
 
     def fetch_exported
       @exported = File.readlines("export.log", chomp: true)
+    end
+
+    def prefill_queue
+      @queue = Queue.new
+
+      entries.each do |entry|
+        queue << entry["name"] unless exported.include?(entry)
+      end
     end
 
     def stream(file, &block)
@@ -78,12 +88,18 @@ module MVG
 
     def iterate_entries
       logger.info "Found #{entries.size} upstream and #{exported.size} already exported archives"
-      entries.each_with_index do |entry, _i|
-        filename = entry["name"]
-        next if exported.include?(filename)
 
-        process_archive(filename)
+      4.times do |thread_id|
+        threads << Thread.new do
+          until queue.empty?
+            filename = queue.pop
+            p "processing #{filename} in thread #{thread_id}"
+            process_archive(filename)
+          end
+        end
       end
+
+      threads.last.join
     end
 
     def process_archive(filename)
@@ -125,6 +141,10 @@ module MVG
       hash["datestring"] = datestring
       hash["station"] = station
       hash["timestamp"] = timestamp
+
+      # convert timestamp from milliseconds to seconds
+      hash["plannedDepartureTime"] = hash["plannedDepartureTime"] / 1000 if idx
+      hash["realtimeDepartureTime"] = hash["realtimeDepartureTime"] / 1000 if idx
 
       hash
     end
