@@ -2,6 +2,7 @@
 
 require_relative "analyser/bigquery"
 require_relative "analyser/clickhouse"
+require_relative "analyser/clickhouse_replace"
 require_relative "analyser/version"
 
 module MVG
