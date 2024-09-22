@@ -2,6 +2,8 @@
 
 require "click_house"
 require "yaml"
+require "typhoeus"
+require "json"
 
 module MVG
   module Analyser
@@ -79,6 +81,18 @@ module MVG
           t << "request_params String CODEC(ZSTD(3))"
           t << "request_header String CODEC(ZSTD(3))"
         end
+
+        connection.create_table("stations", if_not_exists: true, engine: "MergeTree PRIMARY KEY id") do |t|
+          t << "name String CODEC(ZSTD(3))"
+          t << "place String CODEC(ZSTD(3))"
+          t << "id String CODEC(ZSTD(3))"
+          t << "divaId Int32 CODEC(ZSTD(3))"
+          t << "abbreviation String CODEC(ZSTD(3))"
+          t << "tariffZones LowCardinality(String) CODEC(ZSTD(3))"
+          t << "products String CODEC(ZSTD(3))"
+          t << "latitude Float64 CODEC(ZSTD(3))"
+          t << "longitude Float64 CODEC(ZSTD(3))"
+        end
       end
 
       def drop_tables
@@ -86,6 +100,7 @@ module MVG
         sleep(10)
         connection.drop_table("responses")
         connection.drop_table("requests")
+        connection.drop_table("stations")
       end
 
       def insert(rows)
@@ -99,6 +114,24 @@ module MVG
       def commit
         connection.insert(table, cache)
         @cache = []
+      end
+
+      def update_stations
+        response = Typhoeus.get("https://www.mvg.de/.rest/zdm/stations")
+
+        stations = JSON.parse(response.body)
+
+        cache = []
+
+        stations.each do |station|
+          station.each do |key, value|
+            station[key] = value.to_json if value.is_a?(Array) || value.is_a?(Hash)
+          end
+
+          cache << station
+        end
+
+        connection.insert("stations", cache)
       end
     end
   end

@@ -82,6 +82,21 @@ module MVG
           t << "request_params String CODEC(ZSTD(3))"
           t << "request_header String CODEC(ZSTD(3))"
         end
+
+        connection.create_table("stations",
+                                if_not_exists: true,
+                                engine: "ReplacingMergeTree",
+                                order: "(id)") do |t|
+          t << "name String CODEC(ZSTD(3))"
+          t << "place String CODEC(ZSTD(3))"
+          t << "id String CODEC(ZSTD(3))"
+          t << "divaId Int32 CODEC(ZSTD(3))"
+          t << "abbreviation String CODEC(ZSTD(3))"
+          t << "tariffZones LowCardinality(String) CODEC(ZSTD(3))"
+          t << "products String CODEC(ZSTD(3))"
+          t << "latitude Float64 CODEC(ZSTD(3))"
+          t << "longitude Float64 CODEC(ZSTD(3))"
+        end
       end
 
       def drop_tables
@@ -89,6 +104,7 @@ module MVG
         sleep(10)
         connection.drop_table("responses")
         connection.drop_table("requests")
+        connection.drop_table("stations")
       end
     end
   end
