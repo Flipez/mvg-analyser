@@ -60,7 +60,7 @@ module MVG
         connection.create_table("requests",
                                 if_not_exists: true,
                                 order: "(station, timestamp)",
-                                partition: "datestring"
+                                partition: "datestring",
                                 engine: "MergeTree") do |t|
           t << "id String CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
