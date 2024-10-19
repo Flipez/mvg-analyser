@@ -27,7 +27,8 @@ module MVG
         connection.create_table("responses",
                                 if_not_exists: true,
                                 engine: "ReplacingMergeTree",
-                                order: "(responseIndex, timestamp, station)") do |t|
+                                order: "(label, destination, station, plannedDepartureTime, timestamp)") do |t|
+                                #order: "(responseIndex, timestamp, station)") do |t|
           t << "responseIndex Int16 CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
           t << "timestamp Int64 CODEC(ZSTD(3))"

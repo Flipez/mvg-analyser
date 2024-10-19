@@ -29,7 +29,9 @@ module MVG
       def setup_tables
         connection.create_table("responses",
                                 if_not_exists: true,
-                                engine: "MergeTree PRIMARY KEY (responseIndex, datestring, timestamp, station)") do |t|
+                                engine: "MergeTree",
+                                partition: "datestring",
+                                order: "(label, destination, station, plannedDepartureTime, timestamp)") do |t|
           t << "responseIndex Int16 CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
           t << "timestamp Int64 CODEC(ZSTD(3))"
@@ -55,7 +57,11 @@ module MVG
           t << "stopPointGlobalId String CODEC(ZSTD(3))"
         end
 
-        connection.create_table("requests", if_not_exists: true, engine: "MergeTree PRIMARY KEY id") do |t|
+        connection.create_table("requests",
+                                if_not_exists: true,
+                                order: "(station, timestamp)",
+                                partition: "datestring"
+                                engine: "MergeTree") do |t|
           t << "id String CODEC(ZSTD(3))"
           t << "datestring String CODEC(ZSTD(3))"
           t << "timestamp Int64 CODEC(ZSTD(3))"
@@ -82,7 +88,7 @@ module MVG
           t << "request_header String CODEC(ZSTD(3))"
         end
 
-        connection.create_table("stations", if_not_exists: true, engine: "MergeTree PRIMARY KEY id") do |t|
+        connection.create_table("stations", if_not_exists: true, engine: "MergeTree") do |t|
           t << "name String CODEC(ZSTD(3))"
           t << "place String CODEC(ZSTD(3))"
           t << "id String CODEC(ZSTD(3))"
