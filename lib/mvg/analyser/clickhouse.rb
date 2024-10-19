@@ -88,7 +88,7 @@ module MVG
           t << "request_header String CODEC(ZSTD(3))"
         end
 
-        connection.create_table("stations", if_not_exists: true, engine: "MergeTree") do |t|
+        connection.create_table("stations", if_not_exists: true, engine: "MergeTree", order: "(name)") do |t|
           t << "name String CODEC(ZSTD(3))"
           t << "place String CODEC(ZSTD(3))"
           t << "id String CODEC(ZSTD(3))"
