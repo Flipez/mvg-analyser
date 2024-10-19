@@ -102,11 +102,11 @@ module MVG
       end
 
       def drop_tables
-        puts "Will drop all clickhouse tables in 10s"
-        sleep(10)
-        connection.drop_table("responses")
-        connection.drop_table("requests")
-        connection.drop_table("stations")
+        puts "Will drop all clickhouse tables in 5s"
+        sleep(5)
+        connection.drop_table("responses", if_exists: true)
+        connection.drop_table("requests", if_exists: true)
+        connection.drop_table("stations", if_exists: true)
       end
 
       def insert(rows)
